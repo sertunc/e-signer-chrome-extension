@@ -5,9 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const dongleLoadButton = document.getElementById('dongleLoadButton');
 
   const pinInput = document.getElementById('pin');
+  const togglePinVisibilityButton = document.getElementById("togglePinVisibility");
   const openSessionButton = document.getElementById("openSessionButton");
 
   const islemKoduInput = document.getElementById('islemKodu');
+  const fileInput = document.getElementById('fileInput');
   const signButton = document.getElementById("signButton");
 
   let sessionState = false;
@@ -96,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
         openSessionButton.innerHTML = 'Oturumu Kapat';
         openSessionButton.disabled = false;
         islemKoduInput.disabled = false;
+        fileInput.disabled = false;
         signButton.disabled = false;
 
         showMessage(result.Data || "Oturum başarıyla açıldı", "success");
@@ -135,6 +138,12 @@ document.addEventListener("DOMContentLoaded", function () {
     setLoadingState(openSessionButton, false, sessionState ? "Oturumu Kapat" : "Oturumu Aç");
   }
 
+  togglePinVisibilityButton.addEventListener("click", () => {
+    const isHidden = pinInput.type === "password";
+    pinInput.type = isHidden ? "text" : "password";
+    togglePinVisibilityButton.textContent = isHidden ? "🙈" : "👁️";
+  });
+
   dongleLoadButton.addEventListener("click", async function () {
     setLoadingState(dongleLoadButton, true, "Yükleniyor...");
     await fetchDongleList();
@@ -151,30 +160,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
   signButton.addEventListener("click", async function () {
     const islemKodu = islemKoduInput.value.trim();
-    if (!islemKodu) {
-      showMessage("Lütfen işlem kodunu girin.", "error");
+    const file = fileInput?.files?.[0];
+
+    if (!islemKodu && !file) {
+      showMessage("Lütfen işlem kodunu girin veya bir dosya yükleyin.", "error");
       return;
     }
 
     setLoadingState(signButton, true);
 
     try {
-      const response = await fetch(`${API_BASE}/sign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ islemKodu })
-      });
+      signButton.innerHTML = '<div class="spinner"></div>';
+      signButton.disabled = true;
+
+      let response;
+
+      if (islemKodu) {
+        response = await fetch(`${API_BASE}/withislemkodu/${islemKodu}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+      } else if (file) {
+        const base64 = await toBase64(file);
+
+        response = await fetch(`${API_BASE}/withfile`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Data: base64,
+            FileName: file.name
+          }),
+        });
+      }
 
       const result = await response.json();
 
       if (result.IsSuccessful) {
-        showMessage("İmza başarıyla tamamlandı!", "success");
+        showMessage(result.Data || "İmza başarılı.", "success");
       } else {
-        showMessage("İmza başarısız: " + result.Errors.join(", "), "error");
+        showMessage(`İmza başarısız:: ${result.Errors.join(", ")}`, "error");
       }
 
     } catch (error) {
-      showMessage("İmzalama sırasında hata oluştu: " + error.message, "error");
+      showMessage(`İmzalama sırasında hata oluştu: ${error.message}`, "error");
+    } finally {
+      signButton.innerHTML = "İmzala";
+      signButton.disabled = false;
     }
 
     setLoadingState(signButton, false, "İmzala");
@@ -228,9 +259,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const isDongleSelected = dongleSelect.value !== '';
     const isPinFilled = pinInput.value.trim() !== '';
     const isIslemKoduFilled = islemKoduInput.value.trim() !== '';
+    const isFileSelected = fileInput.files.length > 0;
 
-    signButton.disabled = !(isDongleSelected && isPinFilled && isIslemKoduFilled);
+    signButton.disabled = !(isDongleSelected && isPinFilled && (isIslemKoduFilled || isFileSelected));
   }
+
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1]; // Sadece Base64 içeriği al
+        resolve(base64String);
+      };
+
+      reader.onerror = error => reject(error);
+    });
+  }
+
 
   pinInput.addEventListener('input', validateInputs);
   dongleSelect.addEventListener('change', validateInputs);

@@ -235,4 +235,42 @@ body {
     flex: 1;
 }
 
-/* ...existing code... */
+.divider-with-text {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 16px 0;
+    color: #999;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.divider-with-text::before,
+.divider-with-text::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ccc;
+}
+
+.divider-with-text:not(:empty)::before {
+    margin-right: 0.75em;
+}
+
+.divider-with-text:not(:empty)::after {
+    margin-left: 0.75em;
+}
+
+.toggle-visibility-btn {
+    position: absolute;
+    right: 150px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    color: #555;
+}
+
+.toggle-visibility-btn:focus {
+    outline: none;
+}

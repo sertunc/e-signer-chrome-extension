@@ -50,10 +50,13 @@
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                     <input type="password" id="pin" class="form-input input-with-icon" placeholder="PIN kodunuzu girin"
-                        required disabled style="width: 180px;">
-                    <button id="openSessionButton" class="btn btn-primary" style="margin-top:0; width:133px;"
-                        disabled>Oturum
-                        Aç</button>
+                        required disabled style="width: 180px; padding-right: 40px;">
+                    <button type="button" id="togglePinVisibility" class="toggle-visibility-btn" tabindex="-1">
+                        👁️
+                    </button>
+                    <button id="openSessionButton" class="btn btn-primary" style="margin-top:0; width:133px;" disabled>
+                        Oturum Aç
+                    </button>
                 </div>
             </div>
 
@@ -69,6 +72,15 @@
                     <input type="text" id="islemKodu" class="form-input input-with-icon"
                         placeholder="İşlem kodunu girin" required disabled>
                 </div>
+            </div>
+
+            <div class="divider-with-text">
+                <span>veya</span>
+            </div>
+
+            <div class="form-group">
+                <label for="fileInput" class="form-label">İmzalanacak Dosya Yükleyin</label>
+                <input type="file" id="fileInput" class="form-input" accept=".pdf" disabled>
             </div>
 
             <button id="signButton" class="btn btn-primary" disabled>İmzala</button>
