@@ -1,3 +1,3 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("QuickSign extension yüklendi!");
+  console.log("Signer extension yüklendi!");
 });
